@@ -14,17 +14,46 @@ import os
 import torch
 from executorch.exir import ExecutorchBackendConfig, to_edge
 
-from executorch.extension.training.examples.XOR.model import Net, TrainingNet
 from torch.export import export
 from torch.export.experimental import _export_forward_backward
+import torch.nn as nn
+from torch.nn import functional as F
+
+# DNF encoder
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.linear1 = nn.Linear(100, 1)
+
+    def forward(self, x):
+        return self.linear1(x)
+
+
+class GradientLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, output, grad):
+        return (output * grad).sum()
+
+
+class TrainingNet(nn.Module):
+    def __init__(self, net):
+        super().__init__()
+        self.net = net
+        self.criterion = GradientLoss()
+
+    def forward(self, input, grad):
+        pred = self.net(input)
+        loss = self.criterion(pred,grad)
+        return loss, pred.detach()
 
 
 def _export_model():
     net = TrainingNet(Net())
-    x = torch.randn(2, 100)
-
+    x = torch.randn(1, 100)
     # Captures the forward graph. The graph will look similar to the model definition now.
-    ep = export(net, (x, torch.ones(1, dtype=torch.int64)), strict=True)
+    ep = export(net, (x, torch.ones(1)), strict=True)
     # Captures the backward graph. The exported_program now contains the joint forward and backward graph.
     ep = _export_forward_backward(ep)
     # Lower the graph to edge dialect.
