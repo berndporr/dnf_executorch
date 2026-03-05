@@ -24,12 +24,12 @@ class Net(nn.Module):
     def forward(self, x):
         return self.linear1(x)
 
-
 class GradientLoss(nn.Module):
     # The derivative of the loss with respect to the output
     # is simply the gradient!
-    def forward(self, output, grad):
-        return (output * grad).sum()
+    def forward(self, remover, inputSignal):
+        error = inputSignal - remover;
+        return (remover * error).sum()
 
 class TrainingNet(nn.Module):
     def __init__(self, net):

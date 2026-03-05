@@ -1,6 +1,6 @@
 /**
- * BSD-3 LICENSE
- * Copyright (c) 2020-2025 by Bernd Porr
+ * BSD LICENSE
+ * Copyright (c) 2020-2026 by Bernd Porr
  * Copyright (c) 2020-2022 by Sama Daryanavard
  **/
 
@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include <torch/torch.h>
+#include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
+#include <executorch/extension/tensor/tensor_ptr_maker.h>
 #include <thread>
 #include <iostream>
 #include <deque>
@@ -29,39 +31,53 @@ constexpr bool debugOutput = true;
 class DNF
 {
 public:
-    /**
-     * Options for activation functions of all neurons in the network.
-     **/
-    enum ActMethod
+    DNF(std::string features_pte_filename = "dnf.pte")
     {
-        Act_Sigmoid = 1,
-        Act_Tanh = 2,
-        Act_ReLU = 3,
-        Act_NONE = 0
-    };
+        trainingNet = std::make_shared<executorch::extension::Module>(features_pte_filename);
+        const auto method_meta = trainingNet->method_meta("forward");
 
-private:
-    struct Net : public torch::nn::Module
-    {
-        std::vector<torch::nn::Linear> fc;
-        Net(int nLayers, int nInput, bool withBias = false);
-        torch::Tensor forward(torch::Tensor x, ActMethod am);
-    };
+        if (debugOutput && method_meta.ok())
+        {
+            std::cerr << "Num of inputs: " << (int)(method_meta->num_inputs()) << std::endl;
+            const auto input_meta = method_meta->input_tensor_meta(0);
+            if (input_meta.ok())
+            {
+                std::cerr << "Input Scalar type: " << type_to_string(input_meta->scalar_type()) << std::endl;
+                std::cerr << "Sizes: ";
+                for (auto &s : input_meta->sizes())
+                    std::cerr << s << " ";
+                std::cerr << std::endl;
+            }
 
-public:
-    /**
-     * Constructor which sets up the delay lines, network layers
-     * and also calculates the number of neurons per layer so
-     * that the final layer always just has one neuron.
-     * \param nLayers Number of layers
-     * \param nTaps Number of taps for the delay line feeding into the 1st layer
-     * \param am The activation function for the neurons. Default is tanh.
-     * \param tryGPU Does the learning on the GPU if available.
-     **/
-    DNF(const int nLayers,
-        const int nTaps,
-        const ActMethod am = Act_Tanh,
-        const bool tryGPU = false);
+            std::cerr << "Num of outputs: " << (int)(method_meta->num_outputs()) << std::endl;
+            const auto output_meta = method_meta->output_tensor_meta(0);
+            if (output_meta.ok())
+            {
+                std::cerr << "Output Scalar type: " << type_to_string(output_meta->scalar_type()) << std::endl;
+                std::cerr << "Sizes: ";
+                for (auto &s : output_meta->sizes())
+                    std::cerr << s << " ";
+                std::cerr << std::endl;
+            }
+        }
+
+        executorch::runtime::Error result = trainingNet->load_forward();
+        if (executorch::runtime::Error::Ok != result)
+        {
+            std::cerr << "load_forward() error = " << (int)result << ", " << executorch::runtime::to_string(result) << std::endl;
+            throw result;
+        }
+
+        executorch::runtime::Error error = trainingNet->load();
+        if (!(trainingNet->is_loaded()))
+        {
+            std::cerr << "load() error = " << (int)error << executorch::runtime::to_string(error) << std::endl;
+            throw error;
+        }
+
+        signal_delayLine.init(signalDelayLineLength);
+	    noise_delayLine.init(noiseDelayLineLength);
+    }
 
     /**
      * Sets the learning rate of the entire network. It can
@@ -131,23 +147,6 @@ public:
     float getWeightDistance() const;
 
     /**
-     * Gets the torch device for example to determine if
-     * the GPU is being used.
-     **/
-    const torch::Device getTorchDevice() const
-    {
-        return device;
-    }
-
-    /**
-     * Gets the torch model, for example, to read out the weights.
-     **/
-    const Net getModel() const
-    {
-        return model;
-    }
-
-    /**
      * Xavier gain for the weight init.
      **/
     static constexpr double xavierGain = 0.01;
@@ -185,25 +184,36 @@ private:
         std::deque<float> buffer;
     };
 
-    void saveInitialParameters()
-    {
-        for (const auto &p : model.parameters())
-        {
-            initialParameters.push_back(p.detach().clone());
-        }
-    }
-
-    const int noiseDelayLineLength;
-    const int signalDelayLineLength;
-    const ActMethod actMethod;
-    Net model;
-    torch::optim::SGD optimizer;
-    std::vector<torch::Tensor> initialParameters;
+    int noiseDelayLineLength = 0;
+    int signalDelayLineLength = 0;
     DelayLine signal_delayLine;
     DelayLine noise_delayLine;
     float remover = 0;
     float f_nn = 0;
-    torch::Device device = torch::kCPU;
+    std::shared_ptr<executorch::extension::Module> trainingNet;
+
+    inline const char *type_to_string(executorch::aten::ScalarType t)
+    {
+        switch (t)
+        {
+        case executorch::aten::ScalarType::Byte:
+            return "Byte";
+        case executorch::aten::ScalarType::Char:
+            return "Char";
+        case executorch::aten::ScalarType::Short:
+            return "Short";
+        case executorch::aten::ScalarType::Int:
+            return "Int";
+        case executorch::aten::ScalarType::Long:
+            return "Long";
+        case executorch::aten::ScalarType::Float:
+            return "Float";
+        case executorch::aten::ScalarType::Double:
+            return "Double";
+        default:
+            return "Unknown";
+        }
+    }
 };
 
 #endif

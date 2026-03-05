@@ -29,9 +29,6 @@ double fs = 1000; // Hz
 // Mains noise
 double noise_f = 50; // Hz
 
-// activation
-const DNF::ActMethod ACTIVATION = DNF::Act_Tanh;
-
 // dnf learning rate
 const double dnf_learning_rate = 0.01;
 
@@ -56,9 +53,7 @@ int main(int argc, char *argv[])
     double norm_noise_f = noise_f / fs;
     int nSamples = 0;
 
-    torch::manual_seed(42);
-
-    DNF dnf(NLAYERS, nTapsDNF, ACTIVATION, tryCUDA);
+    DNF dnf;
 
     auto start = std::chrono::high_resolution_clock::now();
 
