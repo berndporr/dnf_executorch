@@ -7,10 +7,6 @@
 
 # pyre-unsafe
 
-import argparse
-
-import os
-
 import torch
 from executorch.exir import ExecutorchBackendConfig, to_edge
 
@@ -30,12 +26,10 @@ class Net(nn.Module):
 
 
 class GradientLoss(nn.Module):
-    def __init__(self):
-        super().__init__()
-
+    # The derivative of the loss with respect to the output
+    # is simply the gradient!
     def forward(self, output, grad):
         return (output * grad).sum()
-
 
 class TrainingNet(nn.Module):
     def __init__(self, net):
