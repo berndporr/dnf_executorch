@@ -49,7 +49,7 @@ public:
             std::move(loader_res.get()));
 
         std::unique_ptr<executorch::extension::FileDataLoader> ptd_loader = nullptr;
-  
+
         trainingNet = std::make_shared<executorch::extension::training::TrainingModule>(
             std::move(loader), nullptr, nullptr, nullptr, std::move(ptd_loader));
 
@@ -119,7 +119,10 @@ public:
      * disables learning / adaptation.
      * \param mu Learning rate
      **/
-    void setLearningRate(float mu);
+    void setLearningRate(float mu)
+    {
+        //
+    }
 
     /**
      * Realtime sample by sample filtering operation
@@ -127,7 +130,27 @@ public:
      * \param noise The reference noise. Should be less than one.
      * \returns The filtered signal where the noise has been removed by the DNF.
      **/
-    float filter(const float signal, const float noise);
+    float filter(const float signal, const float noise)
+    {
+        const float delayed_signal = signal_delayLine.process(signal);
+        noise_delayLine.process(noise);
+
+        auto noiseTimeSeries = executorch::extension::zeros({noiseDelayLineLength});
+        for (int i = 0; i < noiseDelayLineLength; i++)
+        {
+            noiseTimeSeries->mutable_data_ptr<float>()[i] = noise_delayLine.get(i);
+        }
+
+        std::vector<executorch::aten::SizesType> insizes({noiseDelayLineLength});
+
+        auto output = (trainingNet->forward({noiseTimeSeries, delayed_signal}));
+
+        // torch::Tensor gradient = torch::tensor({-f_nn}).to(device);
+        // output.retain_grad();
+        // output.backward(gradient);
+
+        return f_nn;
+    }
 
     /**
      * Returns the length of the delay line which
@@ -169,21 +192,20 @@ public:
     }
 
     /**
-     * Gets the weight distances per layer
-     * \returns The Eucledian weight distance in relation to the initial weights.
-     **/
-    const std::vector<float> getLayerWeightDistances() const;
-
-    /**
-     * Gets the overall weight distsance
-     * \returns The sum of all layer weight distances.
-     **/
-    float getWeightDistance() const;
-
-    /**
      * Xavier gain for the weight init.
      **/
     static constexpr double xavierGain = 0.01;
+
+    float getWeightDistance() const
+    {
+        return 0;
+    }
+
+    const std::vector<float> getLayerWeightDistances() const
+    {
+        std::vector<float> distances;
+        return distances;
+    }
 
 private:
     class DelayLine
