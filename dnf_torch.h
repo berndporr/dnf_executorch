@@ -14,6 +14,9 @@
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
+#include <executorch/extension/training/module/training_module.h>
+#include <executorch/extension/training/optimizer/sgd.h>
+#include <executorch/extension/data_loader/file_data_loader.h>
 #include <thread>
 #include <iostream>
 #include <deque>
@@ -33,7 +36,23 @@ class DNF
 public:
     DNF(std::string features_pte_filename = "dnf.pte")
     {
-        trainingNet = std::make_shared<executorch::extension::Module>(features_pte_filename);
+        // Load the model file.
+        executorch::runtime::Result<executorch::extension::FileDataLoader>
+            loader_res =
+                executorch::extension::FileDataLoader::from(features_pte_filename.c_str());
+        if (loader_res.error() != executorch::runtime::Error::Ok)
+        {
+            fprintf(stderr, "Failed to open model file: %s", features_pte_filename.c_str());
+            return;
+        }
+        auto loader = std::make_unique<executorch::extension::FileDataLoader>(
+            std::move(loader_res.get()));
+
+        std::unique_ptr<executorch::extension::FileDataLoader> ptd_loader = nullptr;
+  
+        trainingNet = std::make_shared<executorch::extension::training::TrainingModule>(
+            std::move(loader), nullptr, nullptr, nullptr, std::move(ptd_loader));
+
         const auto method_meta = trainingNet->method_meta("forward");
 
         if (debugOutput && method_meta.ok())
@@ -75,8 +94,23 @@ public:
             throw error;
         }
 
+        // Create optimizer.
+        // Get the params and names
+        auto param_res = trainingNet->named_parameters("forward");
+        if (param_res.error() != executorch::runtime::Error::Ok)
+        {
+            ET_LOG(
+                Error,
+                "Failed to get named parameters, error: %d",
+                static_cast<int>(param_res.error()));
+            return;
+        }
+
+        executorch::extension::training::optimizer::SGDOptions options{0.1};
+        optimizer = std::make_shared<executorch::extension::training::optimizer::SGD>(param_res.get(), options);
+
         signal_delayLine.init(signalDelayLineLength);
-	    noise_delayLine.init(noiseDelayLineLength);
+        noise_delayLine.init(noiseDelayLineLength);
     }
 
     /**
@@ -190,7 +224,8 @@ private:
     DelayLine noise_delayLine;
     float remover = 0;
     float f_nn = 0;
-    std::shared_ptr<executorch::extension::Module> trainingNet;
+    std::shared_ptr<executorch::extension::training::TrainingModule> trainingNet;
+    std::shared_ptr<executorch::extension::training::optimizer::SGD> optimizer;
 
     inline const char *type_to_string(executorch::aten::ScalarType t)
     {
