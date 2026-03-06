@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     double norm_noise_f = noise_f / fs;
     int nSamples = 0;
 
-    DNF dnf;
+    DNF dnf("../dnf.pte");
 
     auto start = std::chrono::high_resolution_clock::now();
 

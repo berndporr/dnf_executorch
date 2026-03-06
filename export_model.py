@@ -53,18 +53,26 @@ def _export_model():
     # Lower the graph to edge dialect.
     ep = to_edge(ep)
     # Lower the graph to executorch.
-    ep = ep.to_executorch(
-        config=ExecutorchBackendConfig()
-    )
+    ep = ep.to_executorch()
     return ep
 
 
 def main() -> None:
+    pte_filename = "dnf.pte"
     torch.manual_seed(0)
     ep = _export_model()
 
-    with open("dnf.pte", "wb") as fp:
+    with open(pte_filename, "wb") as fp:
         ep.write_to_file(fp)
+
+ 
+    from executorch.runtime import Runtime
+    runtime = Runtime.get()
+    method = runtime.load_program(pte_filename).load_method("forward")
+    x = torch.randn(1, 100)
+    outputs = method.execute([x, torch.ones(1)])
+    print(outputs)
+
 
 if __name__ == "__main__":
     main()

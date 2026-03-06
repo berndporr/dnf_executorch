@@ -54,29 +54,46 @@ public:
             std::move(loader), nullptr, nullptr, nullptr, std::move(ptd_loader));
 
         const auto method_meta = trainingNet->method_meta("forward");
+        const auto input0_meta = method_meta->input_tensor_meta(0);
+        noiseDelayLineLength = input0_meta->sizes()[1];
+        fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
+        signalDelayLineLength = noiseDelayLineLength / 2;
+        fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
 
         if (debugOutput && method_meta.ok())
         {
-            std::cerr << "Num of inputs: " << (int)(method_meta->num_inputs()) << std::endl;
-            const auto input_meta = method_meta->input_tensor_meta(0);
-            if (input_meta.ok())
+            std::cerr << std::endl;
+            const int nInputs = (int)(method_meta->num_inputs());
+            std::cerr << "Num of inputs: " << nInputs << std::endl;
+            for (int i = 0; i < nInputs; i++)
             {
-                std::cerr << "Input Scalar type: " << type_to_string(input_meta->scalar_type()) << std::endl;
-                std::cerr << "Sizes: ";
-                for (auto &s : input_meta->sizes())
-                    std::cerr << s << " ";
-                std::cerr << std::endl;
+                std::cerr << "Input " << i << ":" << std::endl;
+                const auto input_meta = method_meta->input_tensor_meta(i);
+                if (input_meta.ok())
+                {
+                    std::cerr << "Input Scalar type: " << type_to_string(input_meta->scalar_type()) << std::endl;
+                    std::cerr << "Sizes: ";
+                    for (auto &s : input_meta->sizes())
+                        std::cerr << s << " ";
+                    std::cerr << std::endl;
+                }
             }
 
-            std::cerr << "Num of outputs: " << (int)(method_meta->num_outputs()) << std::endl;
-            const auto output_meta = method_meta->output_tensor_meta(0);
-            if (output_meta.ok())
+            std::cerr << std::endl;
+            const int nOutputs = (int)(method_meta->num_outputs());
+            std::cerr << "Num of outputs: " << nOutputs << std::endl;
+            for (int i = 0; i < nOutputs; i++)
             {
-                std::cerr << "Output Scalar type: " << type_to_string(output_meta->scalar_type()) << std::endl;
-                std::cerr << "Sizes: ";
-                for (auto &s : output_meta->sizes())
-                    std::cerr << s << " ";
-                std::cerr << std::endl;
+                const auto output_meta = method_meta->output_tensor_meta(i);
+                if (output_meta.ok())
+                {
+                    std::cerr << "Output #" << i << ":" << std::endl;
+                    std::cerr << "Output Scalar type: " << type_to_string(output_meta->scalar_type()) << std::endl;
+                    std::cerr << "Sizes: ";
+                    for (auto &s : output_meta->sizes())
+                        std::cerr << s << " ";
+                    std::cerr << std::endl;
+                }
             }
         }
 
