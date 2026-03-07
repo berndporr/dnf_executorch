@@ -9,11 +9,13 @@
 
 import torch
 from executorch.exir import ExecutorchBackendConfig, to_edge
+from executorch.exir import to_edge_transform_and_lower
 
 from torch.export import export
 from torch.export.experimental import _export_forward_backward
 import torch.nn as nn
 from torch.nn import functional as F
+from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
 
 # DNF encoder
 class Net(nn.Module):
@@ -56,22 +58,24 @@ def _export_model():
     print("Forward / backward graph:")
     print(ep.graph)
     print()
-    # Lower the graph to edge dialect.
-    ep = to_edge(ep)
-    # Lower the graph to executorch.
-    ep = ep.to_executorch()
-    return ep
+
+    # Optimize for target hardware (switch backends with one line)
+    program = to_edge_transform_and_lower(
+        ep,
+        partitioner=[XnnpackPartitioner()]
+    ).to_executorch()
+
+    return program
 
 
 def main() -> None:
     pte_filename = "dnf.pte"
     torch.manual_seed(0)
-    ep = _export_model()
+    program = _export_model()
 
     with open(pte_filename, "wb") as fp:
-        ep.write_to_file(fp)
+        program.write_to_file(fp)
 
- 
     from executorch.runtime import Runtime
     runtime = Runtime.get()
     method = runtime.load_program(pte_filename).load_method("forward")
