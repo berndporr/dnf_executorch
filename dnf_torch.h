@@ -43,7 +43,7 @@ public:
         if (loader_res.error() != executorch::runtime::Error::Ok)
         {
             fprintf(stderr, "Failed to open model file: %s", features_pte_filename.c_str());
-            return;
+            throw loader_res.error();
         }
         auto loader = std::make_unique<executorch::extension::FileDataLoader>(
             std::move(loader_res.get()));

@@ -48,8 +48,14 @@ def _export_model():
     x = torch.randn(1, 100)
     # Captures the forward graph. The graph will look similar to the model definition now.
     ep = export(net, (x, torch.ones(1)), strict=True)
+    print("Forward graph:")
+    print(ep.graph)
+    print()
     # Captures the backward graph. The exported_program now contains the joint forward and backward graph.
     ep = _export_forward_backward(ep)
+    print("Forward / backward graph:")
+    print(ep.graph)
+    print()
     # Lower the graph to edge dialect.
     ep = to_edge(ep)
     # Lower the graph to executorch.

@@ -1,21 +1,17 @@
-# Deep Neuronal Filter (DNF) -- libtorch version
+# Deep Neuronal Filter (DNF) -- executorch version
 
-[![DOI](https://zenodo.org/badge/1102660599.svg)](https://doi.org/10.5281/zenodo.17827627)
-
-A realtime noise reduction filter using deep networks in autoencoder configuration.
-
-![alt tag](dnf_diagram.png)
-
-https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0277974
+This is an experimental repo and it does not work at the moment!
 
 ## Prerequisites Libraries and packages
 
-1) Make sure you have `cmake` and a c++ compiler installed.
+executorch:
 
-2) Libtorch
-
- - Intel architectures: Get libtorch from the [PyTorch homepage](https://pytorch.org/get-started/locally/). Add `CMAKE_PREFIX_PATH=/path/to/libtorch` pointing to the libtorch directory as an environment variable.
- - ARM Debian (Raspberry PI): just do `apt install libtorch-dev` and you are all set!
+```
+cmake --preset linux -DEXECUTORCH_BUILD_EXTENSION_TRAINING=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DEXECUTORCH_ENABLE_LOGGING=ON -DEXECUTORCH_LOG_LEVEL=DEBUG .
+cd cmake-out
+make
+sudo make install
+```
 
 ## How to compile
 
@@ -31,23 +27,10 @@ make
 ```
 to compile the library and the demos.
 
-## Installation
-
-```
-sudo make install
-```
-
-## Documentation
-
-[Doxygen generated documentation](https://berndporr.github.io/dnf_torch/)
-
 ## Example
 
 [Simple instructional example which removes 50Hz from an ECG](ecg_filt_demo).
 
-![alt tag](ecg_filt_demo/screenshot.png)
-
 ## Credits
-
  - Bernd Porr
- - Sama Daryanavard
+
