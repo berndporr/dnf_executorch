@@ -22,31 +22,13 @@ include_directories(${TORCH_INCLUDE_DIRS})
 
 include(GNUInstallDirs)
 
+find_package(executorch CONFIG REQUIRED)
+
 add_executable (ecg_filt_demo ecg_filt_demo.cpp)
+
 target_link_libraries(ecg_filt_demo
-    extension_training
-    extension_tensor
-    extension_module
-    extension_data_loader
-    extension_flat_tensor
-    executorch
-    executorch_core
-
-    # XNNPACK backend
-    # xnnpack_backend
-    "$<LINK_LIBRARY:WHOLE_ARCHIVE,xnnpack_backend>"
-
-    # XNNPACK dependencies
-    XNNPACK
-
-    xnnpack-microkernels-prod
-
-    pthreadpool
-    extension_threadpool
-
-    quantized_kernels
-    quantized_ops_lib
-    kernels_util_all_deps
-    cpuinfo
-    extension_named_data_map
+  executorch
+  portable_ops_lib
+  portable_kernels
+  extension_training
 )

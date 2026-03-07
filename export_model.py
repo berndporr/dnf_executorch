@@ -9,13 +9,12 @@
 
 import torch
 from executorch.exir import ExecutorchBackendConfig, to_edge
-from executorch.exir import to_edge_transform_and_lower
-
+from executorch.extension.training.examples.XOR.model import Net, TrainingNet
 from torch.export import export
 from torch.export.experimental import _export_forward_backward
 import torch.nn as nn
 from torch.nn import functional as F
-from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
+
 
 # DNF encoder
 class Net(nn.Module):
@@ -59,14 +58,15 @@ def _export_model():
     print(ep.graph)
     print()
 
-    # Optimize for target hardware (switch backends with one line)
-    program = to_edge_transform_and_lower(
-        ep,
-        partitioner=[XnnpackPartitioner()]
-    ).to_executorch()
-
-    return program
-
+    # Lower the graph to executorch.
+    external_mutable_weights = False
+    ep = to_edge(ep)
+    ep = ep.to_executorch(
+        config=ExecutorchBackendConfig(
+            external_mutable_weights=external_mutable_weights
+        )
+    )
+    return ep
 
 def main() -> None:
     pte_filename = "dnf.pte"
