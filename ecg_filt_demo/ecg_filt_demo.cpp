@@ -40,11 +40,6 @@ const char outputFilename[] = "ecg_filtered.dat";
 
 int main(int argc, char *argv[])
 {
-    bool tryCUDA = false;
-    if (argc > 1)
-    {
-        tryCUDA = atoi(argv[1]) == 1;
-    }
     fprintf(stderr, "Reading noisy ECG file: %s.\n", inputFilename);
 
     FILE *finput = fopen(inputFilename, "rt");

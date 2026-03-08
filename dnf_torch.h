@@ -152,15 +152,22 @@ public:
         const float delayed_signal = signal_delayLine.process(signal);
         noise_delayLine.process(noise);
 
-        auto noiseTimeSeries = executorch::extension::zeros({noiseDelayLineLength});
+        auto noiseTimeSeries = executorch::extension::zeros({1,noiseDelayLineLength});
         for (int i = 0; i < noiseDelayLineLength; i++)
         {
             noiseTimeSeries->mutable_data_ptr<float>()[i] = noise_delayLine.get(i);
         }
 
-        std::vector<executorch::aten::SizesType> insizes({noiseDelayLineLength});
+        auto ds = executorch::extension::make_tensor_ptr<float>({1}, {delayed_signal});
 
-        auto output = (trainingNet->forward({noiseTimeSeries, delayed_signal}));
+        fprintf(stderr, "forward/backward!\n");
+        const auto& results = trainingNet->execute_forward_backward("forward",{noiseTimeSeries, ds});
+        if (results.error() != executorch::runtime::Error::Ok) {
+            fprintf(stderr, "Failed to execute forward_backward");
+            return 0;
+        }
+
+        f_nn = results.get()[1].toTensor().const_data_ptr<float>()[0];
 
         // torch::Tensor gradient = torch::tensor({-f_nn}).to(device);
         // output.retain_grad();
