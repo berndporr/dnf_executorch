@@ -16,13 +16,6 @@
 
 using namespace std;
 
-// Integer of the total number of hidden layers
-// required not including the input layer
-const int NLAYERS = 3;
-
-// Number of taps of the delay line
-const int nTapsDNF = 100;
-
 // Sampling rate
 double fs = 1000; // Hz
 
@@ -30,7 +23,7 @@ double fs = 1000; // Hz
 double noise_f = 50; // Hz
 
 // dnf learning rate
-const double dnf_learning_rate = 0.01;
+const double dnf_learning_rate = 0.0001;
 
 // input filename
 const char inputFilename[] = "ecg50hz.dat";
@@ -48,11 +41,10 @@ int main(int argc, char *argv[])
     double norm_noise_f = noise_f / fs;
     int nSamples = 0;
 
-    DNF dnf("../dnf.pte");
+    DNF dnf("../dnf.pte",dnf_learning_rate);
+    dnf.setLearning(false);
 
     auto start = std::chrono::high_resolution_clock::now();
-
-    dnf.setLearningRate(0);
 
     for (int i = 0;; i++)
     {
@@ -67,9 +59,10 @@ int main(int argc, char *argv[])
 
         double ref_noise = sin(2 * M_PI * norm_noise_f * (double)i);
 
-        if (i == (nTapsDNF * 10))
+        // start learning after 1sec
+        if (i == (int)fs)
         {
-            dnf.setLearningRate(dnf_learning_rate);
+            dnf.setLearning(true);
         }
 
         double f_nn = dnf.filter(input_signal, ref_noise);

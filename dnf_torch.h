@@ -34,7 +34,7 @@ constexpr bool debugOutput = true;
 class DNF
 {
 public:
-    DNF(std::string features_pte_filename = "dnf.pte")
+    DNF(std::string features_pte_filename = "dnf.pte", double learningRate = 0.0001)
     {
         // Load the model file.
         executorch::runtime::Result<executorch::extension::FileDataLoader>
@@ -123,22 +123,11 @@ public:
             return;
         }
 
-        executorch::extension::training::optimizer::SGDOptions options{0.0001};
+        executorch::extension::training::optimizer::SGDOptions options{learningRate};
         optimizer = std::make_shared<executorch::extension::training::optimizer::SGD>(param_res.get(), options);
 
         signal_delayLine.init(signalDelayLineLength);
         noise_delayLine.init(noiseDelayLineLength);
-    }
-
-    /**
-     * Sets the learning rate of the entire network. It can
-     * be set any time during learning. Setting it to zero
-     * disables learning / adaptation.
-     * \param mu Learning rate
-     **/
-    void setLearningRate(float mu)
-    {
-        //
     }
 
     /**
@@ -152,7 +141,7 @@ public:
         const float delayed_signal = signal_delayLine.process(signal);
         noise_delayLine.process(noise);
 
-        auto noiseTimeSeries = executorch::extension::zeros({1,noiseDelayLineLength});
+        auto noiseTimeSeries = executorch::extension::zeros({1, noiseDelayLineLength});
         for (int i = 0; i < noiseDelayLineLength; i++)
         {
             noiseTimeSeries->mutable_data_ptr<float>()[i] = noise_delayLine.get(i);
@@ -160,17 +149,29 @@ public:
         auto ds = executorch::extension::make_tensor_ptr<float>({1}, {delayed_signal});
 
         fprintf(stderr, "forward/backward!\n");
-        const auto& results = trainingNet->execute_forward_backward("forward",{noiseTimeSeries, ds});
-        if (results.error() != executorch::runtime::Error::Ok) {
+        const auto &results = trainingNet->execute_forward_backward("forward", {noiseTimeSeries, ds});
+        if (results.error() != executorch::runtime::Error::Ok)
+        {
             fprintf(stderr, "Failed to execute forward_backward");
             return 0;
         }
-        optimizer->step(trainingNet->named_gradients("forward").get());
+        if (learningIsOn)
+        {
+            optimizer->step(trainingNet->named_gradients("forward").get());
+        }
 
-	remover = results.get()[1].toTensor().const_data_ptr<float>()[0];
+        remover = results.get()[1].toTensor().const_data_ptr<float>()[0];
         f_nn = delayed_signal - remover;
 
         return f_nn;
+    }
+
+    /**
+     * Switches learning on or off.
+     * @param If true learning is switched on. Otherwise off.
+     */
+    void setLearning(bool wants2learn = true) {
+        learningIsOn = wants2learn;
     }
 
     /**
@@ -269,6 +270,7 @@ private:
     float f_nn = 0;
     std::shared_ptr<executorch::extension::training::TrainingModule> trainingNet;
     std::shared_ptr<executorch::extension::training::optimizer::SGD> optimizer;
+    bool learningIsOn = true;
 
     inline const char *type_to_string(executorch::aten::ScalarType t)
     {

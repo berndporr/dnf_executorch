@@ -25,13 +25,13 @@ class Net(nn.Module):
         super().__init__()
 
         self.seq = nn.Sequential()
-        b = np.exp(np.log(nTaps)/(nLayers-1));
+        b = np.exp(np.log(nTaps)/nLayers);
         nInput = nTaps
         for i in range(nLayers):
             if (i == (nLayers-1)):
                 nOutput = 1
             else:
-                nOutput = np.ceil(nTaps / np.pow(b,i));
+                nOutput = int(np.ceil(nTaps / np.pow(b,i+1)));
             print("Created layer",i,"with",nInput,"->",nOutput)
             self.seq.add_module("Layer"+str(i),nn.Linear(nInput, nOutput))
             self.seq.add_module("Nonlin"+str(i),nn.Tanh())
