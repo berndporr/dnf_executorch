@@ -1,6 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
-# Copyright (c) Bernd Porr
+# Copyright (c) 2026 Bernd Porr
 #
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -15,12 +15,13 @@ from torch.export.experimental import _export_forward_backward
 import torch.nn as nn
 from torch.nn import functional as F
 
+nTaps = 100
 
 # DNF encoder
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear1 = nn.Linear(100, 1)
+        self.linear1 = nn.Linear(nTaps, 1)
 
     def forward(self, x):
         return self.linear1(x)
@@ -46,7 +47,7 @@ class TrainingNet(nn.Module):
 
 def _export_model():
     net = TrainingNet(Net())
-    x = torch.randn(1, 100)
+    x = torch.randn(1, nTaps)
     # Captures the forward graph. The graph will look similar to the model definition now.
     ep = export(net, (x, torch.ones(1)), strict=True)
     print("Forward graph:")
@@ -79,7 +80,7 @@ def main() -> None:
     from executorch.runtime import Runtime
     runtime = Runtime.get()
     method = runtime.load_program(pte_filename).load_method("forward")
-    x = torch.randn(1, 100)
+    x = torch.randn(1, nTaps)
     outputs = method.execute([x, torch.ones(1)])
     print(outputs)
 
