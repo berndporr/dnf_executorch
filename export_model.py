@@ -14,17 +14,31 @@ from torch.export import export
 from torch.export.experimental import _export_forward_backward
 import torch.nn as nn
 from torch.nn import functional as F
+import numpy as np
 
 nTaps = 100
+nLayers = 1
 
 # DNF encoder
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear1 = nn.Linear(nTaps, 1)
+
+        self.seq = nn.Sequential()
+        b = np.exp(np.log(nTaps)/(nLayers-1));
+        nInput = nTaps
+        for i in range(nLayers):
+            if (i == (nLayers-1)):
+                nOutput = 1
+            else:
+                nOutput = np.ceil(nTaps / np.pow(b,i));
+            print("Created layer",i,"with",nInput,"->",nOutput)
+            self.seq.add_module("Layer"+str(i),nn.Linear(nInput, nOutput))
+            self.seq.add_module("Nonlin"+str(i),nn.Tanh())
+            nInput = nOutput
 
     def forward(self, x):
-        return self.linear1(x)
+        return self.seq(x)
 
 class TrainingNet(nn.Module):
     def __init__(self, net):
