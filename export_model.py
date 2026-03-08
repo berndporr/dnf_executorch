@@ -26,23 +26,16 @@ class Net(nn.Module):
     def forward(self, x):
         return self.linear1(x)
 
-class GradientLoss(nn.Module):
-    # The derivative of the loss with respect to the output
-    # is simply the gradient!
-    def forward(self, remover, inputSignal):
-        error = -(inputSignal - remover);
-        return remover * error
-
 class TrainingNet(nn.Module):
     def __init__(self, net):
         super().__init__()
         self.net = net
-        self.criterion = GradientLoss()
+        self.criterion = nn.MSELoss()
 
-    def forward(self, input, grad):
-        pred = self.net(input)
-        loss = self.criterion(pred,grad)
-        return loss, pred.detach()
+    def forward(self, noiseRef, noisySignal):
+        remover = self.net(noiseRef)
+        loss = self.criterion(remover,noisySignal)
+        return loss, remover.detach()
 
 
 def _export_model():
