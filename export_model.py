@@ -16,7 +16,10 @@ import torch.nn as nn
 from torch.nn import functional as F
 import numpy as np
 
+# Noise ref delay line length
 nTaps = 100
+
+# Number of layers. 1=FIR/LMS filter.
 nLayers = 1
 
 # DNF encoder
@@ -55,11 +58,13 @@ class TrainingNet(nn.Module):
 def _export_model():
     net = TrainingNet(Net())
     x = torch.randn(1, nTaps)
+
     # Captures the forward graph. The graph will look similar to the model definition now.
     ep = export(net, (x, torch.ones(1)), strict=True)
     print("Forward graph:")
     print(ep.graph)
     print()
+
     # Captures the backward graph. The exported_program now contains the joint forward and backward graph.
     ep = _export_forward_backward(ep)
     print("Forward / backward graph:")
@@ -67,13 +72,8 @@ def _export_model():
     print()
 
     # Lower the graph to executorch.
-    external_mutable_weights = False
     ep = to_edge(ep)
-    ep = ep.to_executorch(
-        config=ExecutorchBackendConfig(
-            external_mutable_weights=external_mutable_weights
-        )
-    )
+    ep = ep.to_executorch()
     return ep
 
 def main() -> None:
