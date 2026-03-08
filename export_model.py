@@ -29,8 +29,8 @@ class GradientLoss(nn.Module):
     # The derivative of the loss with respect to the output
     # is simply the gradient!
     def forward(self, remover, inputSignal):
-        error = inputSignal - remover;
-        return (remover * error).sum()
+        error = -(inputSignal - remover);
+        return remover * error
 
 class TrainingNet(nn.Module):
     def __init__(self, net):

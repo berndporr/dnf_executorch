@@ -123,7 +123,7 @@ public:
             return;
         }
 
-        executorch::extension::training::optimizer::SGDOptions options{0.1};
+        executorch::extension::training::optimizer::SGDOptions options{0.0001};
         optimizer = std::make_shared<executorch::extension::training::optimizer::SGD>(param_res.get(), options);
 
         signal_delayLine.init(signalDelayLineLength);
@@ -157,7 +157,6 @@ public:
         {
             noiseTimeSeries->mutable_data_ptr<float>()[i] = noise_delayLine.get(i);
         }
-
         auto ds = executorch::extension::make_tensor_ptr<float>({1}, {delayed_signal});
 
         fprintf(stderr, "forward/backward!\n");
@@ -166,12 +165,10 @@ public:
             fprintf(stderr, "Failed to execute forward_backward");
             return 0;
         }
+        optimizer->step(trainingNet->named_gradients("forward").get());
 
-        f_nn = results.get()[1].toTensor().const_data_ptr<float>()[0];
-
-        // torch::Tensor gradient = torch::tensor({-f_nn}).to(device);
-        // output.retain_grad();
-        // output.backward(gradient);
+	remover = results.get()[1].toTensor().const_data_ptr<float>()[0];
+        f_nn = delayed_signal - remover;
 
         return f_nn;
     }
