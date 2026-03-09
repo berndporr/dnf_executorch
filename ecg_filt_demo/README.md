@@ -13,14 +13,13 @@ which can then be used for more complex reference signals.
 ./ecg_filt_demo
 ```
 
-or if you want to use CUDA: `./ecg_filt_demo 1`.
-
 ## How to plot the results?
 
 ```
-python plot_results.py
+gnuplot
+plot "ecg_filtered.dat" using 1 w l
 ```
 
-which plots the contents of `ecg_filtered.dat`.
+which plots the filtered ECG with 50Hz removed from 1sec onwards:
 
 ![alt tag](screenshot.png)
