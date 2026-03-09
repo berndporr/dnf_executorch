@@ -22,6 +22,9 @@ nTaps = 100
 # Number of layers. 1=FIR/LMS filter.
 nLayers = 1
 
+# Nonlinearity
+nonlin = nn.Tanh()
+
 # DNF encoder
 class Net(nn.Module):
     def __init__(self):
@@ -36,8 +39,11 @@ class Net(nn.Module):
             else:
                 nOutput = int(np.ceil(nTaps / np.pow(b,i+1)));
             print("Created layer",i,"with",nInput,"->",nOutput)
-            self.seq.add_module("Layer"+str(i),nn.Linear(nInput, nOutput))
-            self.seq.add_module("Nonlin"+str(i),nn.Tanh())
+            l = nn.Linear(nInput, nOutput)
+            nn.init.xavier_uniform(l.weight)
+            nn.init.zeros_(l.bias)
+            self.seq.add_module("Layer"+str(i),l)
+            self.seq.add_module("Nonlin"+str(i),nonlin)
             nInput = nOutput
 
     def forward(self, x):
@@ -51,7 +57,7 @@ class TrainingNet(nn.Module):
 
     def forward(self, noiseRef, noisySignal):
         remover = self.net(noiseRef)
-        loss = self.criterion(remover,noisySignal)
+        loss = self.criterion(noisySignal,remover)
         return loss, remover.detach()
 
 

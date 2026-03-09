@@ -148,7 +148,7 @@ public:
         }
         auto ds = executorch::extension::make_tensor_ptr<float>({1}, {delayed_signal});
 
-        fprintf(stderr, "forward/backward!\n");
+        //fprintf(stderr, "forward/backward!\n");
         const auto &results = trainingNet->execute_forward_backward("forward", {noiseTimeSeries, ds});
         if (results.error() != executorch::runtime::Error::Ok)
         {

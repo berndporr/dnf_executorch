@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
         // start learning after 1sec
         if (i == (int)fs)
         {
+	    fprintf(stderr,"Learning ON!\n");
             dnf.setLearning(true);
         }
 
