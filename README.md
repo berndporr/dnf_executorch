@@ -1,13 +1,13 @@
 # Deep Neuronal Filter (DNF) -- executorch version
 
-This is an experimental repo and it does not work at the moment!
+This is work in progress. It works but needs more TLC!
 
 ## Prerequisites Libraries and packages
 
 executorch:
 
 ```
-cmake --preset linux -DEXECUTORCH_BUILD_EXTENSION_TRAINING=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DEXECUTORCH_ENABLE_LOGGING=ON -DEXECUTORCH_LOG_LEVEL=DEBUG .
+cmake --preset linux -DEXECUTORCH_BUILD_EXTENSION_TRAINING=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DEXECUTORCH_ENABLE_LOGGING=ON -DEXECUTORCH_LOG_LEVEL=ERROR .
 cd cmake-out
 make
 sudo make install
@@ -33,4 +33,3 @@ to compile the library and the demos.
 
 ## Credits
  - Bernd Porr
-
