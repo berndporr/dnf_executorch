@@ -25,6 +25,10 @@ nLayers = 1
 # Nonlinearity
 nonlin = nn.Tanh()
 
+# The PTE filename:
+pte_filename = "dnf_executorch.pte"
+
+
 # DNF encoder
 class Net(nn.Module):
     def __init__(self):
@@ -83,7 +87,6 @@ def _export_model():
     return ep
 
 def main() -> None:
-    pte_filename = "dnf.pte"
     torch.manual_seed(0)
     program = _export_model()
 

@@ -4,8 +4,8 @@
  * Copyright (c) 2020-2022 by Sama Daryanavard
  **/
 
-#ifndef _DNF_H
-#define _DNF_H
+#ifndef _DNF_EXECUTORCH_H
+#define _DNF_EXECUTORCH_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,10 +31,10 @@ constexpr bool debugOutput = true;
  * Deep Neuronal Filter
  * https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0277974
  **/
-class DNF
+class DNF_executorch
 {
 public:
-    DNF(std::string features_pte_filename = "dnf.pte", double learningRate = 0.0001)
+    DNF_executorch(std::string features_pte_filename = "dnf_executorch.pte", double learningRate = 0.0001)
     {
         // Load the model file.
         executorch::runtime::Result<executorch::extension::FileDataLoader>

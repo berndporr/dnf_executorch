@@ -12,7 +12,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include "dnf_torch.h"
+#include "dnf_executorch.h"
 
 using namespace std;
 
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     double norm_noise_f = noise_f / fs;
     int nSamples = 0;
 
-    DNF dnf("../dnf.pte",dnf_learning_rate);
+    DNF_executorch dnf("../dnf_executorch.pte",dnf_learning_rate);
     dnf.setLearning(false);
 
     auto start = std::chrono::high_resolution_clock::now();

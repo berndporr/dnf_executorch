@@ -28,7 +28,9 @@ add_executable (ecg_filt_demo ecg_filt_demo.cpp)
 
 target_link_libraries(ecg_filt_demo
   executorch
-  portable_ops_lib
-  portable_kernels
+  # portable_ops_lib
+  optimized_native_cpu_ops_lib
+  # portable_kernels
+  optimized_kernels
   extension_training
 )
