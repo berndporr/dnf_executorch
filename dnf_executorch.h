@@ -57,7 +57,9 @@ public:
         const auto input0_meta = method_meta->input_tensor_meta(0);
         noiseDelayLineLength = input0_meta->sizes()[1];
         fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
+        noiseTimeSeries = executorch::extension::zeros({1, noiseDelayLineLength});
         signalDelayLineLength = noiseDelayLineLength / 2;
+        delayedSignalTensor = executorch::extension::make_tensor_ptr<float>({1});
         fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
 
         if (debugOutput && method_meta.ok())
@@ -139,17 +141,16 @@ public:
     float filter(const float signal, const float noise)
     {
         const float delayed_signal = signal_delayLine.process(signal);
+        delayedSignalTensor->mutable_data_ptr<float>()[0] = delayed_signal;
+
         noise_delayLine.process(noise);
 
-        auto noiseTimeSeries = executorch::extension::zeros({1, noiseDelayLineLength});
         for (int i = 0; i < noiseDelayLineLength; i++)
         {
             noiseTimeSeries->mutable_data_ptr<float>()[i] = noise_delayLine.get(i);
         }
-        auto ds = executorch::extension::make_tensor_ptr<float>({1}, {delayed_signal});
 
-        //fprintf(stderr, "forward/backward!\n");
-        const auto &results = trainingNet->execute_forward_backward("forward", {noiseTimeSeries, ds});
+        const auto &results = trainingNet->execute_forward_backward("forward", {noiseTimeSeries, delayedSignalTensor});
         if (results.error() != executorch::runtime::Error::Ok)
         {
             fprintf(stderr, "Failed to execute forward_backward");
@@ -271,6 +272,8 @@ private:
     std::shared_ptr<executorch::extension::training::TrainingModule> trainingNet;
     std::shared_ptr<executorch::extension::training::optimizer::SGD> optimizer;
     bool learningIsOn = true;
+    executorch::extension::TensorPtr noiseTimeSeries;
+    executorch::extension::TensorPtr delayedSignalTensor;
 
     inline const char *type_to_string(executorch::aten::ScalarType t)
     {
