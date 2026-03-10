@@ -1,5 +1,7 @@
 # Deep Neuronal Filter (DNF) -- executorch version
 
+![alt tag](dnf_diagram.png)
+
 This is work in progress. It works but needs more TLC!
 
 ## Prerequisites Libraries and packages

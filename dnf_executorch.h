@@ -43,7 +43,7 @@ public:
         if (loader_res.error() != executorch::runtime::Error::Ok)
         {
             fprintf(stderr, "Failed to open model file: %s", features_pte_filename.c_str());
-            throw loader_res.error();
+            throw executorch::runtime::Error(loader_res.error());
         }
         auto loader = std::make_unique<executorch::extension::FileDataLoader>(
             std::move(loader_res.get()));
@@ -54,18 +54,21 @@ public:
             std::move(loader), nullptr, nullptr, nullptr, std::move(ptd_loader));
 
         const auto method_meta = trainingNet->method_meta("forward");
-	if (!method_meta.ok()) throw executorch::runtime::Error(executorch::runtime::Error::Internal);
-	
+        if (!method_meta.ok())
+            throw method_meta.error();
+
         const auto input0_meta = method_meta->input_tensor_meta(0);
         noiseDelayLineLength = input0_meta->sizes()[1];
-	if (debugOutput)
-	    fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
+        noise_delayLine.init(noiseDelayLineLength);
+        if (debugOutput)
+            fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
         noiseTimeSeries = executorch::extension::zeros({1, noiseDelayLineLength});
-	
+
         signalDelayLineLength = noiseDelayLineLength / 2;
+        signal_delayLine.init(signalDelayLineLength);
         delayedSignalTensor = executorch::extension::make_tensor_ptr<float>({1});
-	if (debugOutput)
-	    fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
+        if (debugOutput)
+            fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
 
         if (debugOutput)
         {
@@ -119,22 +122,16 @@ public:
         }
 
         // Create optimizer.
-        // Get the params and names
         auto param_res = trainingNet->named_parameters("forward");
         if (param_res.error() != executorch::runtime::Error::Ok)
         {
-            ET_LOG(
-                Error,
-                "Failed to get named parameters, error: %d",
-                static_cast<int>(param_res.error()));
-            return;
+            std::cerr << "getting parameters error = " << (int)param_res.error()
+                      << executorch::runtime::to_string(param_res.error()) << std::endl;
+            throw executorch::runtime::Error(param_res.error());
         }
 
         executorch::extension::training::optimizer::SGDOptions options{learningRate};
         optimizer = std::make_shared<executorch::extension::training::optimizer::SGD>(param_res.get(), options);
-
-        signal_delayLine.init(signalDelayLineLength);
-        noise_delayLine.init(noiseDelayLineLength);
     }
 
     /**
@@ -176,7 +173,8 @@ public:
      * Switches learning on or off.
      * @param If true learning is switched on. Otherwise off.
      */
-    void setLearning(bool wants2learn = true) {
+    void setLearning(bool wants2learn = true)
+    {
         learningIsOn = wants2learn;
     }
 
