@@ -54,15 +54,20 @@ public:
             std::move(loader), nullptr, nullptr, nullptr, std::move(ptd_loader));
 
         const auto method_meta = trainingNet->method_meta("forward");
+	if (!method_meta.ok()) throw executorch::runtime::Error(executorch::runtime::Error::Internal);
+	
         const auto input0_meta = method_meta->input_tensor_meta(0);
         noiseDelayLineLength = input0_meta->sizes()[1];
-        fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
+	if (debugOutput)
+	    fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
         noiseTimeSeries = executorch::extension::zeros({1, noiseDelayLineLength});
+	
         signalDelayLineLength = noiseDelayLineLength / 2;
         delayedSignalTensor = executorch::extension::make_tensor_ptr<float>({1});
-        fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
+	if (debugOutput)
+	    fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
 
-        if (debugOutput && method_meta.ok())
+        if (debugOutput)
         {
             std::cerr << std::endl;
             const int nInputs = (int)(method_meta->num_inputs());
