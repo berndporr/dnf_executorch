@@ -105,6 +105,12 @@ public:
                     std::cerr << std::endl;
                 }
             }
+            auto params = trainingNet->named_parameters("forward");
+
+            for (const auto &p : params.get())
+            {
+                std::cout << "Param: " << p.first << " " << p.second.dim() <<  std::endl;
+            }
         }
 
         executorch::runtime::Error result = trainingNet->load_forward();
@@ -153,6 +159,7 @@ public:
         }
 
         const auto &results = trainingNet->execute_forward_backward("forward", {noiseTimeSeries, delayedSignalTensor});
+        
         if (results.error() != executorch::runtime::Error::Ok)
         {
             fprintf(stderr, "Failed to execute forward_backward");

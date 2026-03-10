@@ -20,7 +20,7 @@ import numpy as np
 nTaps = 100
 
 # Number of layers. 1=FIR/LMS filter.
-nLayers = 1
+nLayers = 3
 
 # Nonlinearity
 nonlin = nn.Tanh()
