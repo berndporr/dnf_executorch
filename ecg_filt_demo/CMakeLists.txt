@@ -11,14 +11,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-Wall)
 
-find_package(Torch REQUIRED)
-
-message(STATUS "Libtorch version: ${Torch_VERSION}")
-message(STATUS "Libtorch include path: ${TORCH_INCLUDE_DIRS}")
-
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(..)
-include_directories(${TORCH_INCLUDE_DIRS})
 
 include(GNUInstallDirs)
 
