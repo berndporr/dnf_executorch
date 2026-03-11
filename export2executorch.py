@@ -1,19 +1,11 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
 # Copyright (c) 2026 Bernd Porr
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree.
-
-# pyre-unsafe
+# BSD license
 
 import torch
-from executorch.exir import ExecutorchBackendConfig, to_edge
-from executorch.extension.training.examples.XOR.model import Net, TrainingNet
+from executorch.exir import to_edge
 from torch.export import export
 from torch.export.experimental import _export_forward_backward
 import torch.nn as nn
-from torch.nn import functional as F
 import numpy as np
 
 # DNF encoder
@@ -63,13 +55,13 @@ def dnf2executorch(pte_filename, nTaps = 50, nLayers = 1, nonlin = nn.Tanh()):
     net = TrainingNet(Net(nTaps,nLayers,nonlin))
     x = torch.randn(1, nTaps)
 
-    # Captures the forward graph. The graph will look similar to the model definition now.
+    # Captures the forward graph.
     ep = export(net, (x, torch.ones(1)), strict=True)
     print("Forward graph:")
     print(ep.graph)
     print()
 
-    # Captures the backward graph. The exported_program now contains the joint forward and backward graph.
+    # Captures the backward graph, too.
     ep = _export_forward_backward(ep)
     print("Forward / backward graph:")
     print(ep.graph)

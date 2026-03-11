@@ -3,12 +3,12 @@
 import sys
 import torch
 sys.path.append('..')
-import dnf2executorch
+import export2executorch
 
 def main() -> None:
     pte_filename = "dnf_executorch.pte" 
     nTaps = 50
-    dnf2executorch.dnf2executorch(pte_filename,nTaps)
+    export2executorch.dnf2executorch(pte_filename,nTaps)
     from executorch.runtime import Runtime
     runtime = Runtime.get()
     method = runtime.load_program(pte_filename).load_method("forward")
