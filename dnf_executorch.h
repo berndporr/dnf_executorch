@@ -70,6 +70,8 @@ public:
         if (debugOutput)
             fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
 
+        initialParam = trainingNet->named_parameters("forward").get();
+
         if (debugOutput)
         {
             std::cerr << std::endl;
@@ -105,11 +107,10 @@ public:
                     std::cerr << std::endl;
                 }
             }
-            auto params = trainingNet->named_parameters("forward");
 
-            for (const auto &p : params.get())
+            for (const auto &p : initialParam)
             {
-                std::cout << "Param: " << p.first << " " << p.second.dim() <<  std::endl;
+                std::cout << "Param: " << p.first << " " << p.second.numel() << " weights." << std::endl;
             }
         }
 
@@ -159,7 +160,7 @@ public:
         }
 
         const auto &results = trainingNet->execute_forward_backward("forward", {noiseTimeSeries, delayedSignalTensor});
-        
+
         if (results.error() != executorch::runtime::Error::Ok)
         {
             fprintf(stderr, "Failed to execute forward_backward");
@@ -229,17 +230,6 @@ public:
      **/
     static constexpr double xavierGain = 0.01;
 
-    float getWeightDistance() const
-    {
-        return 0;
-    }
-
-    const std::vector<float> getLayerWeightDistances() const
-    {
-        std::vector<float> distances;
-        return distances;
-    }
-
 private:
     class DelayLine
     {
@@ -284,6 +274,7 @@ private:
     bool learningIsOn = true;
     executorch::extension::TensorPtr noiseTimeSeries;
     executorch::extension::TensorPtr delayedSignalTensor;
+    std::map<std::string_view, executorch::aten::Tensor> initialParam;
 
     inline const char *type_to_string(executorch::aten::ScalarType t)
     {

@@ -68,11 +68,7 @@ int main(int argc, char *argv[])
 
         double f_nn = dnf.filter(input_signal, ref_noise);
 
-        fprintf(foutput, "%f\t%f\t%f", f_nn, dnf.getDelayedSignal(), dnf.getRemover());
-        auto ds = dnf.getLayerWeightDistances();
-        for (const auto &d : ds)
-            fprintf(foutput, "\t%f", d);
-        fprintf(foutput, "\n");
+        fprintf(foutput, "%f\t%f\t%f\n", f_nn, dnf.getDelayedSignal(), dnf.getRemover());
     }
 
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
