@@ -16,22 +16,9 @@ import torch.nn as nn
 from torch.nn import functional as F
 import numpy as np
 
-# Noise ref delay line length
-nTaps = 100
-
-# Number of layers. 1=FIR/LMS filter.
-nLayers = 3
-
-# Nonlinearity
-nonlin = nn.Tanh()
-
-# The PTE filename:
-pte_filename = "dnf_executorch.pte"
-
-
 # DNF encoder
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self,nTaps,nLayers,nonlin):
         super().__init__()
 
         self.seq = nn.Sequential()
@@ -64,9 +51,16 @@ class TrainingNet(nn.Module):
         loss = self.criterion(noisySignal,remover)
         return loss, remover.detach()
 
+def dnf2executorch(pte_filename, nTaps = 50, nLayers = 1, nonlin = nn.Tanh()):
+    """
+    Creates the pte file of the DNF.
+    pte_filename: the filename of the pte file to be exported.
+    nTaps: Noise ref delay line length.
+    nLayers: Number of layers. 1=FIR/LMS filter.
+    nonlin: Nonlinearity.
+    """
 
-def _export_model():
-    net = TrainingNet(Net())
+    net = TrainingNet(Net(nTaps,nLayers,nonlin))
     x = torch.randn(1, nTaps)
 
     # Captures the forward graph. The graph will look similar to the model definition now.
@@ -84,15 +78,16 @@ def _export_model():
     # Lower the graph to executorch.
     ep = to_edge(ep)
     ep = ep.to_executorch()
-    return ep
+
+    with open(pte_filename, "wb") as fp:
+        ep.write_to_file(fp)
+
 
 def main() -> None:
     torch.manual_seed(0)
-    program = _export_model()
-
-    with open(pte_filename, "wb") as fp:
-        program.write_to_file(fp)
-
+    pte_filename = "dnf_executorch.pte" 
+    nTaps = 50
+    dnf2executorch(pte_filename,nTaps)
     from executorch.runtime import Runtime
     runtime = Runtime.get()
     method = runtime.load_program(pte_filename).load_method("forward")
