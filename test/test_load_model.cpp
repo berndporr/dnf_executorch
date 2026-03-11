@@ -20,5 +20,5 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    DNF_executorch dnf("../dnf_executorch.pte");
+    DNF_executorch dnf("dnf_executorch.pte");
 }

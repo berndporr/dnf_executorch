@@ -70,8 +70,6 @@ public:
         if (debugOutput)
             fprintf(stderr, "Signaldelayline length = %d\n", signalDelayLineLength);
 
-        initialParam = trainingNet->named_parameters("forward").get();
-
         if (debugOutput)
         {
             std::cerr << std::endl;
@@ -108,6 +106,7 @@ public:
                 }
             }
 
+            auto initialParam = trainingNet->named_parameters("forward").get();
             for (const auto &p : initialParam)
             {
                 std::cout << "Param: " << p.first << " " << p.second.numel() << " weights." << std::endl;
@@ -274,7 +273,6 @@ private:
     bool learningIsOn = true;
     executorch::extension::TensorPtr noiseTimeSeries;
     executorch::extension::TensorPtr delayedSignalTensor;
-    std::map<std::string_view, executorch::aten::Tensor> initialParam;
 
     inline const char *type_to_string(executorch::aten::ScalarType t)
     {
