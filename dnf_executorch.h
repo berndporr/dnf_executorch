@@ -106,8 +106,8 @@ public:
                 }
             }
 
-            auto initialParam = trainingNet->named_parameters("forward").get();
-            for (const auto &p : initialParam)
+            auto param = trainingNet->named_parameters("forward").get();
+            for (const auto &p : param)
             {
                 std::cerr << "Param: " << p.first << " " << p.second.numel() << " weights." << std::endl;
             }
@@ -183,6 +183,19 @@ public:
     void setLearning(bool wants2learn = true)
     {
         learningIsOn = wants2learn;
+    }
+
+    /**
+     * Get the Number Of Taps feeding into the deep net.
+     * 
+     * The number of taps is defining by the PTE file and are set when loading it.
+     * With this function one can obtain the number of taps of the delay line feeding
+     * into the Deep Network.
+     * \returns Number of taps
+     */
+    inline int getNumberOfTaps() const
+    {
+        return noiseDelayLineLength;
     }
 
     /**
