@@ -109,7 +109,7 @@ public:
             auto initialParam = trainingNet->named_parameters("forward").get();
             for (const auto &p : initialParam)
             {
-                std::cout << "Param: " << p.first << " " << p.second.numel() << " weights." << std::endl;
+                std::cerr << "Param: " << p.first << " " << p.second.numel() << " weights." << std::endl;
             }
         }
 

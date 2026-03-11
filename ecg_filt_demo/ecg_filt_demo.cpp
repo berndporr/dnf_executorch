@@ -14,8 +14,6 @@
 
 #include "dnf_executorch.h"
 
-using namespace std;
-
 // Sampling rate
 double fs = 1000; // Hz
 

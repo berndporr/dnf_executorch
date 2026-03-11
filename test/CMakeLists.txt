@@ -17,13 +17,21 @@ include(GNUInstallDirs)
 
 find_package(executorch CONFIG REQUIRED)
 
-add_executable (test_load_model test_load_model.cpp)
-
-target_link_libraries(test_load_model
+set(EXECUTORCH_LINK_LIBS 
   executorch
   optimized_native_cpu_ops_lib
   optimized_kernels
   extension_training
 )
 
+add_executable (test_load_model test_load_model.cpp)
+target_link_libraries(test_load_model
+  ${EXECUTORCH_LINK_LIBS}
+)
 add_test(TestLoadModel test_load_model)
+
+add_executable (test_filtering test_filtering.cpp)
+target_link_libraries(test_filtering
+  ${EXECUTORCH_LINK_LIBS}
+)
+add_test(TestFiltering test_filtering)
