@@ -106,8 +106,11 @@ public:
                 }
             }
 
-            auto param = trainingNet->named_parameters("forward").get();
-            for (const auto &p : param)
+            auto param = trainingNet->named_parameters("forward");
+            if (!param.ok()) {
+                throw param.error();
+            }
+            for (const auto &p : param.get())
             {
                 std::cerr << "Param: " << p.first << " " << p.second.numel() << " weights." << std::endl;
             }

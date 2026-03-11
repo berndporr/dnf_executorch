@@ -16,9 +16,18 @@
 
 #include "dnf_executorch.h"
 
-using namespace std;
+constexpr int expectedNTaps = 50;
 
 int main(int argc, char *argv[])
 {
     DNF_executorch dnf("dnf_executorch.pte");
+    if (dnf.getNumberOfTaps() != expectedNTaps) {
+        fprintf(stderr, "Number of taps mismatch.\n");
+        throw;
+    }
+
+    if (dnf.getSignalDelaySteps() != (expectedNTaps/2)) {
+        fprintf(stderr, "Number of signal delay steps mismatch.\n");
+        throw;
+    }
 }
