@@ -237,11 +237,6 @@ public:
         return f_nn;
     }
 
-    /**
-     * Xavier gain for the weight init.
-     **/
-    static constexpr double xavierGain = 0.01;
-
 private:
     class DelayLine
     {
