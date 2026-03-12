@@ -53,17 +53,22 @@ public:
         trainingNet = std::make_shared<executorch::extension::training::TrainingModule>(
             std::move(loader), nullptr, nullptr, nullptr, std::move(ptd_loader));
 
+        // get the meta info about the forward pass
         const auto method_meta = trainingNet->method_meta("forward");
         if (!method_meta.ok())
             throw method_meta.error();
 
+        // get the meta info of the input tensor
         const auto input0_meta = method_meta->input_tensor_meta(0);
+
+        // input tensor size determines the length of the delay line
         noiseDelayLineLength = input0_meta->sizes()[1];
         noise_delayLine.init(noiseDelayLineLength);
         if (debugOutput)
             fprintf(stderr, "Noisedelayline length = %d\n", noiseDelayLineLength);
         noiseTimeSeries = executorch::extension::zeros({1, noiseDelayLineLength});
 
+        // signal is delayed half of the noise delay line length to have causality
         signalDelayLineLength = noiseDelayLineLength / 2;
         signal_delayLine.init(signalDelayLineLength);
         delayedSignalTensor = executorch::extension::make_tensor_ptr<float>({1});
@@ -138,7 +143,6 @@ public:
                       << executorch::runtime::to_string(param_res.error()) << std::endl;
             throw executorch::runtime::Error(param_res.error());
         }
-
         executorch::extension::training::optimizer::SGDOptions options{learningRate};
         optimizer = std::make_shared<executorch::extension::training::optimizer::SGD>(param_res.get(), options);
     }
