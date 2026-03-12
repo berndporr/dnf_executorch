@@ -13,6 +13,7 @@ class Net(nn.Module):
     def __init__(self,nTaps,nLayers,nonlin):
         super().__init__()
 
+        torch.manual_seed(42)
         self.seq = nn.Sequential()
         b = np.exp(np.log(nTaps)/nLayers);
         nInput = nTaps
