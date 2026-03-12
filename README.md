@@ -2,7 +2,7 @@
 
 ![alt tag](dnf_diagram.png)
 
-This is work in progress. It works but needs more TLC!
+It works but needs more TLC!
 
 ## Prerequisites Libraries and packages
 
@@ -29,9 +29,17 @@ make
 ```
 to compile the library and the demos.
 
+## Unit tests
+
+```
+make test
+```
+
+
 ## Example
 
 [Simple instructional example which removes 50Hz from an ECG](ecg_filt_demo).
 
 ## Credits
- - Bernd Porr
+
+Bernd Porr
