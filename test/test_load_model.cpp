@@ -20,7 +20,7 @@ constexpr int expectedNTaps = 50;
 
 int main(int argc, char *argv[])
 {
-    DNF_executorch dnf("dnf_executorch.pte");
+    DNF_executorch dnf("dnf_executorch1.pte");
     if (dnf.getNumberOfTaps() != expectedNTaps) {
         fprintf(stderr, "Number of taps mismatch.\n");
         throw;
