@@ -65,10 +65,17 @@ export2executorch.dnf2executorch("dnf_executorch.pte",nTaps,nLayers)
 where `nTaps` is the number of taps of the delay line feeding into the
 deep net with `nLayers` layers.
 
+### Include header
+
+The library is header-only. Just include the header:
+```
+#include "dnf_executorch.h"
+```
+
 ### Init
 
 ```
-DNF_executorch dnf(`export2executorch`, mu);
+DNF_executorch dnf("export2executorch", mu);
 dnf.setLearning(true);
 ```
 where `mu` is the learning rate (typically around 0.01). You cannot change the
@@ -81,6 +88,26 @@ This code snipplet should happen, for example, in your sample-by-sample callback
 const double output_signal = dnf.filter(noisy_input_signal, ref_noise);
 ```
 where `ref_noise` is the noise you'd like to be removed from `noisy_input_signal`.
+
+### Linking
+
+Important is to have a `flat` linking approach. Don't package your code into another library file as executorch will most likely crash. Better link it all together in one single linking command in cmake:
+
+```
+find_package(executorch CONFIG REQUIRED)
+target_link_libraries(my_cool_dnf_filter_app
+  executorch
+  
+  # portable_ops_lib
+  optimized_native_cpu_ops_lib
+  
+  # portable_kernels
+  optimized_kernels
+  
+  extension_training
+)
+```
+Note that executorch offers differently optimised libraries and make sure to include only one of these: portable, optimised or optimised for the computer you've compiled it on. In the example above the portable ones are commented out and the libraries just for the specific processor are linked.
 
 ## Example
 
