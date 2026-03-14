@@ -24,6 +24,8 @@ make
 sudo make install
 ```
 
+Note for now logging should be enabled as the training extension is (still) experimental and
+errors should be reported back to executorch.
 
 ## How to compile
 
@@ -51,7 +53,7 @@ sudo make install
 
 ### Create the DNF model
 
-Create the pte file with the `export2executorch` helper with this python script:
+Create the pte file with the `export2executorch` python script:
 
 ```
 import torch
@@ -60,6 +62,8 @@ nTaps = 50
 nLayers = 5
 export2executorch.dnf2executorch("dnf_executorch.pte",nTaps,nLayers)
 ```
+where `nTaps` is the number of taps of the delay line feeding into the
+deep net with `nLayers` layers.
 
 ### Init
 
@@ -85,6 +89,12 @@ one layer which is identical to an FIR LMS filter.
 
 See also the tests which do learning with one layer and five layers.
 
+##
+
+Class documentation:
+https://berndporr.github.io/dnf_executorch/
+
 ## Credits
 
-Bernd Porr
+- Bernd Porr who has written this version of the DNF
+- Sama Daryanavard who has done the original implementation: https://github.com/berndporr/deepNeuronalFilter
