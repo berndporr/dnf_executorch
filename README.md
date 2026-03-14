@@ -2,7 +2,12 @@
 
 ![alt tag](dnf_diagram.png)
 
-It works but needs a bit more TLC!
+The [deep neuronal filter (DNF)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0277974) 
+is an extension of the classical LMS FIR adaptive noise canceller.
+Instead of using an adaptive FIR filter the DNF uses a realtime adaptive deep neural network.
+This requires high performance sample by sample forward and backward processing. The new
+(still experimental) feature of executorch is ideal for this purpose because it has realtime
+backprop doing gradient descent with a loss function.
 
 ## Prerequisites
 
@@ -18,6 +23,7 @@ cd cmake-out
 make
 sudo make install
 ```
+
 
 ## How to compile
 
@@ -48,7 +54,6 @@ sudo make install
 Create the pte file with the `export2executorch` helper with this python script:
 
 ```
-import sys
 import torch
 import export2executorch
 nTaps = 50
