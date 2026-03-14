@@ -178,9 +178,9 @@ public:
         }
 
         remover = results.get()[1].toTensor().const_data_ptr<float>()[0];
-        f_nn = delayed_signal - remover;
+        dnf_error = results.get()[2].toTensor().const_data_ptr<float>()[0];
 
-        return f_nn;
+        return dnf_error;
     }
 
     /**
@@ -235,13 +235,12 @@ public:
     }
 
     /**
-     * Returns the output of the DNF: the noise
-     * free signal.
+     * Returns the output of the DNF: the noise-free signal.
      * \returns The current output of the DNF which is idential to filter().
      **/
     inline float getOutput() const
     {
-        return f_nn;
+        return dnf_error;
     }
 
 private:
@@ -282,7 +281,7 @@ private:
     DelayLine signal_delayLine;
     DelayLine noise_delayLine;
     float remover = 0;
-    float f_nn = 0;
+    float dnf_error = 0;
     std::shared_ptr<executorch::extension::training::TrainingModule> trainingNet;
     std::shared_ptr<executorch::extension::training::optimizer::SGD> optimizer;
     bool learningIsOn = true;

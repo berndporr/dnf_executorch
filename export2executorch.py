@@ -33,16 +33,22 @@ class Net(nn.Module):
     def forward(self, x):
         return self.seq(x)
 
+class GradientLoss(nn.Module):
+    def forward(self, grad):
+        loss = torch.square(grad);
+        return loss
+
 class TrainingNet(nn.Module):
     def __init__(self, net):
         super().__init__()
         self.net = net
-        self.criterion = nn.MSELoss()
+        self.criterion = GradientLoss()
 
     def forward(self, noiseRef, noisySignal):
         remover = self.net(noiseRef)
-        loss = self.criterion(noisySignal,remover)
-        return loss, remover.detach()
+        error = noisySignal - remover
+        loss = self.criterion(error)
+        return loss, remover.detach(), error.detach()
 
 def dnf2executorch(pte_filename, nTaps = 50, nLayers = 1, nonlin = nn.Tanh()):
     """
