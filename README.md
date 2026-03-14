@@ -89,12 +89,11 @@ one layer which is identical to an FIR LMS filter.
 
 See also the tests which do learning with one layer and five layers.
 
-##
+## Class documentation
 
-Class documentation:
-https://berndporr.github.io/dnf_executorch/
+The doxygen generated files are here: https://berndporr.github.io/dnf_executorch/
 
 ## Credits
 
 - Bernd Porr who has written this version of the DNF
-- Sama Daryanavard who has done the original implementation: https://github.com/berndporr/deepNeuronalFilter
+- Sama Daryanavard wrote the original implementation of the DNF which is here: https://github.com/berndporr/deepNeuronalFilter
