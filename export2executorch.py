@@ -10,7 +10,7 @@ import numpy as np
 
 # DNF encoder
 class Net(nn.Module):
-    def __init__(self,nTaps,nLayers,nonlin):
+    def __init__(self,nTaps,nLayers,xavier_gain,nonlin):
         super().__init__()
 
         torch.manual_seed(42)
@@ -24,7 +24,7 @@ class Net(nn.Module):
                 nOutput = int(np.ceil(nTaps / np.pow(b,i+1)));
             print("Created layer",i,"with",nInput,"->",nOutput)
             l = nn.Linear(nInput, nOutput)
-            nn.init.xavier_uniform(l.weight)
+            nn.init.xavier_uniform(l.weight,gain=xavier_gain)
             nn.init.zeros_(l.bias)
             self.seq.add_module("Layer"+str(i),l)
             self.seq.add_module("Nonlin"+str(i),nonlin)
@@ -50,16 +50,17 @@ class TrainingNet(nn.Module):
         loss = self.criterion(error)
         return loss, remover.detach(), error.detach()
 
-def dnf2executorch(pte_filename, nTaps = 50, nLayers = 1, nonlin = nn.Tanh()):
+def dnf2executorch(pte_filename, nTaps = 50, nLayers = 1, xavier_gain = 0.1, nonlin = nn.Tanh()):
     """
     Creates the pte file of the DNF.
     pte_filename: the filename of the pte file to be exported.
     nTaps: Noise ref delay line length.
     nLayers: Number of layers. 1=FIR/LMS filter.
+    xavier_gain: The xavier gain for the weight init.
     nonlin: Nonlinearity.
     """
 
-    net = TrainingNet(Net(nTaps,nLayers,nonlin))
+    net = TrainingNet(Net(nTaps,nLayers,xavier_gain,nonlin))
     x = torch.randn(1, nTaps)
 
     # Captures the forward graph.

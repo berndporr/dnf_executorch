@@ -15,7 +15,8 @@ def fiveLayers():
     pte_filename = "dnf_executorch5.pte" 
     nTaps = 50
     nLayers = 5
-    export2executorch.dnf2executorch(pte_filename,nTaps,nLayers)
+    gain = 1
+    export2executorch.dnf2executorch(pte_filename,nTaps,nLayers,gain)
 
 if __name__ == "__main__":
     oneLayer()
