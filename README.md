@@ -60,10 +60,14 @@ import torch
 import export2executorch
 nTaps = 50
 nLayers = 5
-export2executorch.dnf2executorch("dnf_executorch.pte",nTaps,nLayers)
+gain = 0.1
+export2executorch.dnf2executorch("dnf_executorch.pte",nTaps,nLayers,gain)
 ```
 where `nTaps` is the number of taps of the delay line feeding into the
-deep net with `nLayers` layers.
+deep net with `nLayers` layers. `gain` is the xavier gain and 0.1 should
+be OK for most cases. The lower the gain the longer it takes for the
+remover to build up an output but the more precise. If the gain is
+one the remover will instantly create an output but might not converge.
 
 ### Include header
 
